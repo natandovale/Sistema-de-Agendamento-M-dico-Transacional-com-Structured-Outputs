@@ -286,6 +286,47 @@ A conexão entre os nós do grafo é orquestrada pela classe `ScheduleGraphOrche
                   +-----------------------------------+
 ```
 
+### Como o método `.addConditionalEdge("identifyIntent", state -> { ... })` atua no fluxo
+
+Enquanto as arestas comuns (`.addEdge(from, to)`) definem transições estáticas unidirecionais (como de `scheduler` para `messageGenerator`), o método `.addConditionalEdge` introduz **dinamismo reativo e determinístico** ao grafo.
+
+#### Trecho no `ScheduleGraphOrchestrator`:
+```java
+// Roteamento condicional a partir da intenção classificada
+.addConditionalEdge("identifyIntent", state -> {
+    if (state.intent() == IntentType.SCHEDULE) {
+        return "scheduler";
+    } else if (state.intent() == IntentType.CANCEL) {
+        return "cancel";
+    } else {
+        return "fallback";
+    }
+})
+```
+
+#### Mecânica de Funcionamento Interno da Engine:
+
+1. **Desacoplamento do Nó Extrator (`identifyIntent`):**
+   - O nó `identifyIntent` é puramente funcional: ele recebe a mensagem bruta do paciente, aciona o Spring AI (OpenRouter) com JSON Schema rígido, popula o `ScheduleState` com o enum `IntentType` (`SCHEDULE`, `CANCEL` ou `UNKNOWN`) e devolve o novo estado imutável.
+   - O nó `identifyIntent` **não decide** o próximo passo do fluxo, preservando o princípio de responsabilidade única (SRP).
+
+2. **Interceptação e Avaliação Dinâmica pela Engine (`StateGraph`):**
+   - Ao concluir a execução de `identifyIntent`, a engine do `StateGraph` verifica se existe uma aresta condicional registrada para o nó atual (`conditionalEdges.containsKey("identifyIntent")`).
+   - Havendo a aresta condicional, a engine executa a interface funcional `EdgeCondition<ScheduleState>` (implementada pela lambda `state -> { ... }`), passando o `ScheduleState` resultante:
+     ```java
+     String nextNodeName = condition.evaluate(state);
+     ```
+
+3. **Bifurcação Determinística das Rotas:**
+   - **Ramo `scheduler`:** Se a intenção for `SCHEDULE`, a lambda retorna `"scheduler"`. A máquina de estados salta para o `SchedulerNode`, que aciona o serviço determinístico de domínio (`AppointmentDomainService`) para verificar médico, especialidade, disponibilidade de grade e persistência.
+   - **Ramo `cancel`:** Se a intenção for `CANCEL`, a lambda retorna `"cancel"`. A máquina direciona para o `CancelNode`, que valida a existência do agendamento do paciente e cancela a consulta.
+   - **Ramo `fallback`:** Se for `UNKNOWN` (dúvidas gerais, cumprimentos isolados, falhas de schema ou assuntos fora do escopo), a lambda retorna `"fallback"`. O fluxo cai no `FallbackNode`, que formula orientações de uso sem executar ações no banco.
+
+4. **Vantagens Arquiteturais:**
+   - **Roteamento Centralizado e Auditável:** Toda a política de bifurcação do fluxo conversacional reside em um único ponto explícito no orquestrador, eliminando blocos `if/else` espalhados nos controllers ou nós.
+   - **Type Safety com Enums:** A bifurcação é orientada a tipos (`IntentType`), impedindo que alucinações de texto livre do modelo decidam o fluxo de controle da aplicação.
+   - **Convergência Garantida:** Independentemente do ramo escolhido pela condição (`scheduler`, `cancel` ou `fallback`), todos convergem estaticamente (`addEdge`) para o `messageGenerator`, garantindo que toda requisição produza uma resposta final amigável e estruturada.
+
 ## 6.5. Explicação do Método `process` do `ScheduleGraphOrchestrator`
 
 O método `process` é o ponto de entrada único (*Single Entry Point*) que conecta a camada de controle HTTP (REST Controller) à máquina de estados determinística:
