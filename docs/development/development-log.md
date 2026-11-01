@@ -84,3 +84,24 @@ Implementado o primeiro incremento funcional sob metodologia TDD (Red-Green-Refa
 - `com.med.scheduler.graph.core`
 - `com.med.scheduler.graph.state`
 - `com.med.scheduler.architecture`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 2.1: Modelagem e Regras Determinísticas do Domínio
+
+**Categoria:** Feature / Domínio
+**Importância:** Média
+**Horário:** 00:46
+
+**Descrição:**
+Implementado o núcleo do domínio transacional com TDD:
+- Criação dos testes `AppointmentDomainServiceTest` cobrindo: agendamento com sucesso, falha para médico inexistente, detecção determinística de conflito de horário/agenda ocupada, cancelamento com liberação de horário e validação contra cancelamento inexistente.
+- Modelagem de entidades com Java 21: `Doctor`, `AppointmentStatus` e `Appointment` (com método cancel imutável).
+- Criação das portas de saída `DoctorRepositoryPort` e `AppointmentRepositoryPort`.
+- Criação de `AppointmentDomainService` isolado de qualquer dependência externa ou framework.
+- 100% de sucesso nos 12 testes do projeto (incluindo ArchUnit e StateGraph).
+
+**Módulos afetados:**
+- `com.med.scheduler.domain.model`
+- `com.med.scheduler.domain.repository`
+- `com.med.scheduler.domain.service`
