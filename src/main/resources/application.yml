@@ -24,11 +24,11 @@ spring:
 
   ai:
     openai:
-      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+      base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api}
       api-key: ${OPENROUTER_API_KEY:mock-key}
       chat:
         options:
-          model: ${OPENROUTER_MODEL:anthropic/claude-3.5-haiku}
+          model: ${OPENROUTER_MODEL:meta-llama/llama-3.1-8b-instruct}
 
 server:
   port: ${SERVER_PORT:8080}

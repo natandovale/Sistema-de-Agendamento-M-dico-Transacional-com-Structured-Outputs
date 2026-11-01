@@ -53,37 +53,100 @@ src/main/java/com/med/scheduler/
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
-- JDK 21 instalado (ou use o Maven Wrapper incluído).
-- Docker e Docker Compose instalados.
+- **Java 21** (ou utilize o script `./mvnw` incluso que gerencia automaticamente).
+- **Docker e Docker Compose** (necessário *apenas* se optar por rodar com PostgreSQL).
+- Chave de API da [OpenRouter](https://openrouter.ai/) para processar linguagem natural via LLM.
 
-### 1. Iniciar o Banco de Dados (PostgreSQL) via Docker Compose
+---
 
+### Opção A: Modo Desenvolvimento Rápido (Sem Docker / Banco H2 In-Memory)
+
+Ideal para desenvolvimento ágil e testes imediatos, **sem necessidade de subir containers ou instalar o PostgreSQL**:
+- O perfil `dev` já está **ativo por padrão** em `application.yml`.
+- Utiliza banco relacional **H2 em memória** (`jdbc:h2:mem:schedulerdev`).
+- Os médicos iniciais (`Dr. Alício`, `Dr. Roberto`, `Dra. Beatriz Santos`) são populados automaticamente pelo `DataInitializer`.
+
+#### 1. Configure a chave da OpenRouter e inicie a aplicação:
+```bash
+export OPENROUTER_API_KEY="sua_chave_aqui"
+./mvnw spring-boot:run
+```
+
+A API estará pronta em `http://localhost:8080`.
+
+---
+
+### Opção B: Modo Produção / Staging (Com PostgreSQL via Docker Compose)
+
+Utilizado quando você deseja persistência duradoura em disco e validação do ciclo de migrações com o **Flyway**:
+
+#### 1. Inicie o container PostgreSQL:
 ```bash
 docker compose up -d
 ```
 
-### 2. Configurar a Chave do OpenRouter (Opcional para ambiente real)
-
-Defina a variável de ambiente com sua chave da OpenRouter:
+#### 2. Execute a aplicação ativando o perfil de produção:
 ```bash
 export OPENROUTER_API_KEY="sua_chave_aqui"
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-> **Nota:** Para desenvolvimento local rápido, a aplicação já possui fallback configurado no perfil `dev` com banco H2 in-memory caso o PostgreSQL não esteja rodando.
+O Flyway criará automaticamente o schema (`V1__create_tables.sql`) e fará a carga inicial de dados (`V2__seed_doctors.sql`).
 
-### 3. Executar os Testes Automatizados (TDD & ArchUnit)
+#### 3. Para encerrar e excluir o container do PostgreSQL:
+```bash
+# Para apenas parar e remover o container:
+docker compose down
 
+# Para parar, remover e apagar todo o volume de dados do banco:
+docker compose down -v
+```
+
+#### 💡 Como a Conexão Funciona com o Docker Compose
+
+Quando o banco é iniciado via `docker compose up -d`, a integração ocorre através das seguintes etapas:
+
+```text
++------------------------------------+           +-----------------------------------------+
+|     Aplicação Spring Boot          |           |      Docker Container                   |
+|     (Executando no Host)           |           |      (scheduler-postgres)               |
+|                                    |           |                                         |
+|  HikariCP Connection Pool          |           |  PostgreSQL 16 Alpine                   |
+|  jdbc:postgresql://localhost:5432/ |  TCP:5432 |  Database: schedulerdb                  |
+|  User: scheduler                   | --------> |  Porta interna: 5432                    |
+|  Pass: scheduler_secret            |           |  User: scheduler                        |
++------------------------------------+           +--------------------+--------------------+
+                                                                      |
+                                                                      v
+                                                         +-------------------------+
+                                                         |  Volume Docker Nomeado  |
+                                                         |  (postgres_data)        |
+                                                         |  /var/lib/postgresql/   |
+                                                         |  data                   |
+                                                         +-------------------------+
+```
+
+1. **Encaminhamento de Portas (*Port Forwarding*):**
+   - No `docker-compose.yml`, a instrução `ports: ["5432:5432"]` vincula a porta interna `5432` do container à porta `5432` do seu computador (*localhost*).
+2. **Conexão JDBC da Aplicação:**
+   - A aplicação Spring Boot roda na máquina host e utiliza a URL padrão configurada em `application.yml`:
+     `jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:schedulerdb}`.
+   - O pool de conexões **HikariCP** estabelece a conexão TCP via socket na porta `5432` com usuário `scheduler` e senha `scheduler_secret`.
+3. **Healthcheck e Disponibilidade:**
+   - O container possui um healthcheck contínuo (`pg_isready -U scheduler -d schedulerdb`), garantindo que o PostgreSQL esteja pronto para aceitar conexões e responder às consultas da aplicação.
+4. **Ciclo de Inicialização do Flyway:**
+   - Assim que a conexão com o PostgreSQL é confirmada, o **Flyway** conecta na base `schedulerdb`, cria a tabela `flyway_schema_history` e aplica as migrações SQL sequenciais (`V1` de tabelas e `V2` de médicos).
+5. **Persistência em Disco via Volume (`postgres_data`):**
+   - O diretório `/var/lib/postgresql/data` do container é mapeado para o volume gerenciado `postgres_data`. Isso garante que, se você reiniciar o computador ou derrubar o container com `docker compose down`, seus agendamentos continuam salvos e não serão perdidos.
+
+---
+
+### 🧪 Executar a Suíte de Testes Automatizados (TDD & ArchUnit)
+
+Para executar todos os testes unitários, testes de arquitetura (ArchUnit) e de integração:
 ```bash
 ./mvnw clean test
 ```
-
-### 4. Iniciar a Aplicação
-
-```bash
-./mvnw spring-boot:run
-```
-
-A API estará disponível em `http://localhost:8080`.
 
 ---
 

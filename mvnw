@@ -46,6 +46,11 @@ if [ -z "$MAVEN_SKIP_RC" ] ; then
 
 fi
 
+if [ -d "$HOME/.jdks/openjdk-21.0.1" ]; then
+  export JAVA_HOME="$HOME/.jdks/openjdk-21.0.1"
+fi
+
+
 # OS specific support.  $var _must_ be set to either true or false.
 cygwin=false;
 darwin=false;

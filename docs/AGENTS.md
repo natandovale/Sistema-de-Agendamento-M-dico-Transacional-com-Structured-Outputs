@@ -193,7 +193,7 @@ Sistema-de-Agendamento-M-dico-Transacional-com-Structured-Outputs/
 |---|---|---|---|
 | `OPENROUTER_API_KEY` | Chave de autenticação na OpenRouter API | Sim (para produção/IA) | - |
 | `OPENROUTER_BASE_URL` | URL base da OpenRouter | Não | `https://openrouter.ai/api/v1` |
-| `OPENROUTER_MODEL` | Modelo padrão a ser utilizado | Não | `anthropic/claude-3.5-haiku` / `openai/gpt-4o-mini` |
+| `OPENROUTER_MODEL` | Modelo padrão a ser utilizado | Não | `meta-llama/llama-3.1-8b-instruct` |
 | `SPRING_DATASOURCE_URL` | URL de conexão com o banco | Sim (produção) | `jdbc:h2:mem:schedulerdb;DB_CLOSE_DELAY=-1` |
 | `SPRING_DATASOURCE_USERNAME` | Usuário do banco | Sim (produção) | `sa` |
 | `SPRING_DATASOURCE_PASSWORD` | Senha do banco | Sim (produção) | `""` |
@@ -235,6 +235,121 @@ public record ScheduleState(
 3. `cancelNode`: Executa o cancelamento determinístico da consulta médica.
 4. `fallbackNode`: Trata requisições incompreendidas ou fora do escopo médico.
 5. `messageGeneratorNode`: Gera a resposta humanizada contextualizada com base no `actionResult`.
+
+## 6.4. Diagrama Visual Manual da Topologia do Grafo (DAG)
+
+A conexão entre os nós do grafo é orquestrada pela classe `ScheduleGraphOrchestrator`. A topologia representa um grafo acíclico dirigido (DAG) com bifurcação condicional baseada na intenção extraída e convergência unificada para a geração de mensagem humanizada:
+
+```text
+                  +-----------------------------------+
+                  |               INÍCIO              |
+                  |     (ScheduleState inicial)       |
+                  +-----------------+-----------------+
+                                    |
+                                    v
+                  +-----------------------------------+
+                  |         identifyIntent            |
+                  |  - Chama Spring AI / OpenRouter   |
+                  |  - Extrai IntentType & Parâmetros |
+                  |  - Detecta idioma do paciente     |
+                  +-----------------+-----------------+
+                                    |
+                                    v
+                         /---------------------\
+                        <  state.intent() == ?  >
+                         \---------------------/
+                                    |
+            +-----------------------+-----------------------+
+            | SCHEDULE              | CANCEL                | UNKNOWN (outros)
+            v                       v                       v
+  +-------------------+   +-------------------+   +-------------------+
+  |     scheduler     |   |      cancel       |   |     fallback      |
+  | - Valida Doctor   |   | - Valida Consulta |   | - Trata mensagem  |
+  | - Checa conflito  |   | - Cancela no BD   |   |   ambígua ou fora |
+  | - Salva no BD     |   | - Libera horário  |   |   de escopo       |
+  +---------+---------+   +---------+---------+   +---------+---------+
+            |                       |                       |
+            +-----------------------+-----------------------+
+                                    |
+                                    v
+                  +-----------------------------------+
+                  |         messageGenerator          |
+                  |  - Gera mensagem amigável         |
+                  |  - Respeita idioma (pt-BR, etc.)  |
+                  |  - Comunica o actionResult        |
+                  +-----------------+-----------------+
+                                    |
+                                    v
+                  +-----------------------------------+
+                  |                FIM                |
+                  |         (StateGraph.END)          |
+                  +-----------------------------------+
+```
+
+## 6.5. Explicação do Método `process` do `ScheduleGraphOrchestrator`
+
+O método `process` é o ponto de entrada único (*Single Entry Point*) que conecta a camada de controle HTTP (REST Controller) à máquina de estados determinística:
+
+```java
+public ScheduleState process(String conversationId, String patientId, String message) {
+    ScheduleState initial = ScheduleState.initial(conversationId, patientId, message);
+
+    return graph.execute(initial);
+}
+```
+
+### Ciclo de Execução Passo a Passo:
+
+1. **Instanciação do Estado Inicial Imutável:**
+   - Invoca a factory `ScheduleState.initial(conversationId, patientId, message)`.
+   - Cria uma nova instância de `ScheduleState` (Java 21 `record`) com campos obrigatórios preenchidos e campos operacionais nulos ou com valores padrão (`intent = UNKNOWN`, `actionSuccess = false`).
+2. **Disparo da Máquina de Estados (`graph.execute(initial)`):**
+   - O `StateGraph` recebe o nó inicial registrado (`identifyIntent`).
+   - O orquestrador executa o nó inicial, que aciona a LLM e retorna um novo `ScheduleState` com intenção, idioma e parâmetros extraídos.
+3. **Avaliação da Aresta Condicional (`addConditionalEdge`):**
+   - O grafo avalia a função lambda registrada para `identifyIntent`:
+     - Se `state.intent() == IntentType.SCHEDULE` $\rightarrow$ direciona para o nó `"scheduler"`.
+     - Se `state.intent() == IntentType.CANCEL` $\rightarrow$ direciona para o nó `"cancel"`.
+     - Caso contrário $\rightarrow$ direciona para o nó `"fallback"`.
+4. **Execução Determinística do Nó de Negócio:**
+   - O nó selecionado executa sua operação de forma atômica e atualiza os campos `actionResult` e `actionSuccess` via derivação imutável (`state.withActionResult(...)`).
+5. **Convergência Determinística para `messageGenerator`:**
+   - Independentemente do ramo percorrido (agendamento, cancelamento ou fallback), todas as arestas convergem para o nó `"messageGenerator"`.
+   - O gerador sintetiza a resposta final no campo `humanizedResponse`.
+6. **Finalização (`StateGraph.END`):**
+   - Ao atingir a constante `StateGraph.END`, o laço de execução do grafo termina e o `ScheduleState` final, completo e imutável, é retornado ao controller para serialização no response JSON da API.
+
+---
+
+## 6.6. Conexão ao Banco de Dados e o Papel do Flyway
+
+A persistência do sistema é construída sobre o padrão **Clean Architecture / Hexagonal**, garantindo que o domínio nunca dependa diretamente de drivers de banco ou de anotações JPA.
+
+### 1. Camada de Conexão e Pool de Conexões (HikariCP + Spring Data JPA)
+- **Pool de Conexões:** O Spring Boot inicializa automaticamente o pool de alta performance **HikariCP**, gerenciando conexões ativas e reutilizáveis.
+- **Isolamento por Perfil:**
+  - **Perfil `dev` / `test`:** Conecta-se a um banco de dados em memória **H2** (`jdbc:h2:mem:schedulerdev`), permitindo execução rápida e isolada sem necessidade de containers externos.
+  - **Perfil padrão / produção:** Conecta-se ao **PostgreSQL 16** via JDBC (`jdbc:postgresql://localhost:5432/schedulerdb`), provisionado via Docker Compose.
+- **Validação de Schema com Hibernate:**
+  - Está configurado `spring.jpa.hibernate.ddl-auto: validate`.
+  - Isso significa que o Hibernate **NÃO** altera nem cria tabelas em tempo de execução. Ele apenas valida se as classes mapeadas com `@Entity` coincidem estritamente com as tabelas reais do banco.
+
+### 2. O Papel Central do Flyway no Ciclo de Vida da Aplicação
+O **Flyway** é o componente responsável pelo versionamento determinístico de banco de dados (*Database Migrations / Database as Code*).
+
+#### Como o Flyway opera na inicialização:
+1. **Ordem de Inicialização Precedente:**
+   - Durante o bootstrap do Spring Boot, o Flyway intercepta o `DataSource` **antes** que o Hibernate inicialize o `EntityManagerFactory`.
+2. **Tabela de Controle (`flyway_schema_history`):**
+   - O Flyway consulta ou cria a tabela interna `flyway_schema_history` no banco para saber exatamente quais migrações já foram aplicadas.
+3. **Execução Sequencial e Transacional de Scripts SQL:**
+   - Lê os arquivos no diretório `src/main/resources/db/migration/`:
+     - `V1__create_tables.sql`: Executa a criação das tabelas `doctors` e `appointments`, incluindo chaves primárias, constraints relacionais e índices.
+     - `V2__seed_doctors.sql`: Insere a carga de dados inicial determinística de médicos (`Dr. Alício`, `Dr. Roberto`, `Dra. Beatriz Santos`).
+   - Cada script é executado dentro de uma transação. Se houver falha, ocorre rollback automático da migração e a aplicação é abortada antes de aceitar tráfego.
+4. **Benefícios Arquiteturais:**
+   - **Reprodutibilidade Total:** O mesmo schema e dados de referência sobem identicamente em ambientes locais, testes de integração (Testcontainers) e produção.
+   - **Auditoria e Rastreabilidade:** Qualquer alteração no schema relacional é versionada no Git via scripts SQL versionados (`V1`, `V2`, `V3...`), impedindo divergências estruturais entre código e banco.
 
 ---
 

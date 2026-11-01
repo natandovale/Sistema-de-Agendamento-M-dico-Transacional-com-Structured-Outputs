@@ -31,14 +31,14 @@ class AppointmentPersistenceIntegrationTest {
     @Test
     @DisplayName("Deve persistir e recuperar médico por nome ignorando maiúsculas/minúsculas")
     void shouldPersistAndFindDoctorByNameIgnoreCase() {
-        Doctor doctor = new Doctor("doc-persist-1", "Dra. Beatriz Santos", "Dermatologia");
+        Doctor doctor = new Doctor("doc-persist-1", "Dra. Fernanda Lima", "Dermatologia");
         doctorRepository.save(doctor);
 
-        Optional<Doctor> found = doctorRepository.findByNameIgnoreCase("dra. beatriz santos");
+        Optional<Doctor> found = doctorRepository.findByNameIgnoreCase("dra. fernanda lima");
 
         assertThat(found).isPresent();
         assertThat(found.get().id()).isEqualTo("doc-persist-1");
-        assertThat(found.get().name()).isEqualTo("Dra. Beatriz Santos");
+        assertThat(found.get().name()).isEqualTo("Dra. Fernanda Lima");
         assertThat(found.get().specialty()).isEqualTo("Dermatologia");
     }
 

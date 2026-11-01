@@ -193,3 +193,30 @@ Concluída a entrega do Milestone 4 com a orquestração do DAG e a exposição 
 - `com.med.scheduler.graph`
 - `com.med.scheduler.infrastructure.web`
 - `com.med.scheduler.infrastructure.web.dto`
+
+---
+
+### [HIGH] [FIX] Resolução do Endpoint Base URL no OpenRouter e Validação Live
+
+**Categoria:** Bugfix / Integração de IA
+**Importância:** Alta
+**Horário:** 12:02
+
+**Descrição:**
+Investigado o erro de chamada da LLM via OpenRouter.
+1. **Causa Raiz Técnica:**
+   O cliente `OpenAiApi` do Spring AI concatena nativamente `/v1/chat/completions` à propriedade `spring.ai.openai.base-url`.
+   Quando configurado `https://openrouter.ai/api/v1`, o cliente montava a requisição para `https://openrouter.ai/api/v1/v1/chat/completions`, resultando em HTTP 404 Not Found do OpenRouter.
+2. **Correção Efetuada:**
+   - Atualizado `spring.ai.openai.base-url` para `https://openrouter.ai/api` (sem o `/v1` final) em `application.yml`.
+   - Adicionada a chave de API fornecida como padrão seguro no `application.yml`.
+   - Finalizado processo anterior remanescente na porta 8080 que impedia a aplicação de subir com as novas configurações.
+   - Ajustado `AppointmentPersistenceIntegrationTest` para evitar duplicidade de nomes com os dados do seed Flyway.
+3. **Validação:**
+   - Suíte de 27 testes com 100% de aprovação (`BUILD SUCCESS`).
+   - Aplicação executada em runtime com chamadas reais via `curl` demonstrando extração de `SCHEDULE` e `CANCEL`, consulta agendada com persistência e resposta humanizada.
+
+**Módulos afetados:**
+- `src/main/resources/application.yml`
+- `src/test/java/com/med/scheduler/infrastructure/persistence/AppointmentPersistenceIntegrationTest.java`
+- `src/test/java/com/med/scheduler/infrastructure/ai/OpenRouterLiveTest.java`
