@@ -128,3 +128,25 @@ Implementada a camada de persistência relacional com desacoplamento arquitetura
 - `src/main/resources/db/migration/`
 - `com.med.scheduler.infrastructure.persistence`
 - `com.med.scheduler.infrastructure.config`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 3.1: Integração Spring AI com OpenRouter e Structured Outputs
+
+**Categoria:** Feature / Integração IA
+**Importância:** Média
+**Horário:** 10:53
+
+**Descrição:**
+Implementada a integração de IA com contratos rígidos de Structured Outputs via Spring AI:
+- Criação dos DTOs imutáveis com validações defensivas: `ScheduleDetails`, `CancelDetails` e `IntentExtractionResult`.
+- Criação da porta de saída `LlmExtractionPort`.
+- Criação de `OpenRouterStructuredExtractionService` utilizando a API fluente do `ChatClient` com mapeamento tipado (`.entity(IntentExtractionResult.class)`).
+- Implementação de prompt de sistema com regras estritas para prevenção de alucinações e classificação precisa de intenções (`SCHEDULE`, `CANCEL`, `UNKNOWN`).
+- Criação dos testes unitários em `LlmStructuredExtractionServiceTest` com 3 cenários (agendamento, cancelamento e fallback).
+- 100% de sucesso nos 17 testes do projeto em 13.3s.
+
+**Módulos afetados:**
+- `com.med.scheduler.infrastructure.ai`
+- `com.med.scheduler.infrastructure.ai.dto`
+- `com.med.scheduler.infrastructure.ai.port`
