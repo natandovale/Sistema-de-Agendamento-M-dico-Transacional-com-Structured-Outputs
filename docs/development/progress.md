@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- **Status:** DEVELOPMENT
+- **Status:** COMPLETED
 - **Last Update:** 2026-11-01
-- **Current Milestone:** Milestone 1 — Bootstrap & Arquitetura Base
+- **Current Milestone:** Projeto Finalizado com Sucesso (100% de cobertura nos requisitos)
 
 ## Completed
 
@@ -19,18 +19,18 @@
 - [x] **Incremento 2.2 (Persistência Relacional):** `DoctorEntity`, `AppointmentEntity`, Spring Data Repositories, adaptadores de persistência, Flyway migration V1 e testes de integração de persistência (100% testados).
 - [x] **Incremento 3.1 (Spring AI & Structured Outputs):** `ScheduleDetails`, `CancelDetails`, `IntentExtractionResult`, `LlmExtractionPort` e `OpenRouterStructuredExtractionService` com extração tipada (100% testados).
 - [x] **Incremento 3.2 (Nós do Grafo):** `IdentifyIntentNode`, `SchedulerNode`, `CancelNode`, `FallbackNode` e `MessageGeneratorNode` integrados aos serviços e validados via ArchUnit (100% testados).
+- [x] **Incremento 4.1 (Orquestração do DAG & API REST):** `ScheduleGraphOrchestrator`, `ChatScheduleController`, DTOs de API e testes E2E com `MockMvc` (100% testados).
+- [x] Elaboração do `README.md` com instruções completas de execução e consumo via cURL.
 
 ## In Progress
 
-- [ ] Definição e aprovação do Incremento 4.1 (Milestone 4): Montagem do Grafo Completo (`ScheduleGraphOrchestrator`), Endpoint REST (`ChatScheduleController`) e testes E2E.
+- [ ] Nenhuma atividade em andamento.
 
 ## Pending
 
-- [ ] Finalização do projeto e documentação final de encerramento.
+- [ ] Todas as entregas previstas foram implementadas e testadas.
 
 ## Next Steps
 
-1. **Red:** Escrever testes de unidade para cada um dos 5 nós do Grafo com mocks de IA e Domínio.
-2. **Green:** Implementar as classes de nós em `com.med.scheduler.graph.nodes` implementando `Node<ScheduleState>`.
-3. **Refactor:** Revisar tratamento de erros defensivo e validar build com `./mvnw clean test` e regras do ArchUnit.
-4. Atualizar documentação e diário de bordo.
+1. Criar o `README.md` com guia de execução, comandos do Docker e exemplos de chamadas à API REST.
+2. Apresentar o resumo da entrega completa para alinhamento final.

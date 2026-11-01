@@ -16,7 +16,7 @@
 - **Descrição:** Microsserviço corporativo que traduz texto livre de pacientes em ações transacionais determinísticas de agendamento e cancelamento de consultas médicas.
 - **Objetivo principal:** Garantir separação rígida entre IA (tradução de linguagem natural para JSON tipado via Structured Outputs) e Domínio Transacional (regras de disponibilidade, conflitos de concorrência e persistência), orquestrado por um Grafo de Estados (DAG).
 - **Público-alvo:** Pacientes e canais de atendimento (chatbots, WhatsApp, portais web) que consomem a API de agendamento.
-- **Status:** PLANNING
+- **Status:** PRODUCTION
 - **Responsável técnico:** Natan do Vale
 
 ## 1.2. Visão do Produto

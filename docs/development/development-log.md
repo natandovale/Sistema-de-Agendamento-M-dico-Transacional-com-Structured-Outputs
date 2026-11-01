@@ -172,3 +172,24 @@ Implementados os 5 nós operacionais do DAG conforme a especificação arquitetu
 
 **Módulos afetados:**
 - `com.med.scheduler.graph.nodes`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 4.1: Orquestração do DAG e Endpoint REST com Testes E2E
+
+**Categoria:** Feature / API & Orquestração
+**Importância:** Média
+**Horário:** 11:14
+
+**Descrição:**
+Concluída a entrega do Milestone 4 com a orquestração do DAG e a exposição da API REST:
+- Criação de `ScheduleGraphOrchestrator` montando a máquina de estados completa com 5 nós, roteamento condicional para `schedulerNode`, `cancelNode` e `fallbackNode`, convergindo para `messageGeneratorNode`.
+- Criação dos DTOs `ChatScheduleRequest` (com validações de campos obrigatórios via Bean Validation) e `ChatScheduleResponse`.
+- Criação do controller REST `ChatScheduleController` no endpoint `POST /api/v1/chat/schedule`.
+- Criação dos testes de integração de ponta a ponta em `ChatScheduleControllerE2ETest` com 3 cenários (agendamento com persistência real, fallback para intenção desconhecida e rejeição com 400 Bad Request para payload incompleto).
+- Todos os 26 testes do projeto foram executados e passaram com 100% de sucesso em 14.7s.
+
+**Módulos afetados:**
+- `com.med.scheduler.graph`
+- `com.med.scheduler.infrastructure.web`
+- `com.med.scheduler.infrastructure.web.dto`
