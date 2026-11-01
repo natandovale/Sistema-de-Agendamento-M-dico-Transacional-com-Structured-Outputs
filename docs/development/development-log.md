@@ -105,3 +105,26 @@ Implementado o núcleo do domínio transacional com TDD:
 - `com.med.scheduler.domain.model`
 - `com.med.scheduler.domain.repository`
 - `com.med.scheduler.domain.service`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 2.2: Persistência Relacional com Spring Data JPA e Flyway
+
+**Categoria:** Feature / Infraestrutura de Persistência
+**Importância:** Média
+**Horário:** 01:03
+
+**Descrição:**
+Implementada a camada de persistência relacional com desacoplamento arquitetural:
+- Criação dos scripts de migração Flyway `V1__create_tables.sql` (tabelas `doctors` e `appointments` com chave estrangeira e índices).
+- Criação das entidades JPA `DoctorEntity` e `AppointmentEntity` com mapeamento e isolamento bidirecional (`toDomain` e `fromDomain`).
+- Criação dos repositórios `SpringDataDoctorRepository` e `SpringDataAppointmentRepository`.
+- Criação dos adaptadores de persistência `DoctorPersistenceAdapter` e `AppointmentPersistenceAdapter` implementando as portas de saída do domínio.
+- Criação da configuração `DomainServiceConfig` para injeção de dependência do serviço de domínio.
+- Criação do teste de integração `AppointmentPersistenceIntegrationTest` validando transacionalidade e persistência.
+- 100% de sucesso nos 14 testes do projeto em 13.6s.
+
+**Módulos afetados:**
+- `src/main/resources/db/migration/`
+- `com.med.scheduler.infrastructure.persistence`
+- `com.med.scheduler.infrastructure.config`

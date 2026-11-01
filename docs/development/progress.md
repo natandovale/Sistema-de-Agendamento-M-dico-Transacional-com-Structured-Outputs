@@ -16,19 +16,20 @@
 - [x] **Bootstrap concluído:** Setup de `pom.xml`, Maven Wrapper, perfis `application.yml` / `application-test.yml`, estrutura base e compilação/teste validado com sucesso.
 - [x] **Incremento 1.1 (Engine de Grafo):** `ScheduleState`, `Node<T>`, `EdgeCondition<T>`, `StateGraph<T>` e ArchUnit (100% testado).
 - [x] **Incremento 2.1 (Domínio Puro):** `Doctor`, `Appointment`, `AppointmentStatus`, portas de repositório e `AppointmentDomainService` (regras determinísticas de disponibilidade, conflito e cancelamento 100% testadas com TDD).
+- [x] **Incremento 2.2 (Persistência Relacional):** `DoctorEntity`, `AppointmentEntity`, Spring Data Repositories, adaptadores de persistência, Flyway migration V1 e testes de integração de persistência (100% testados).
 
 ## In Progress
 
-- [ ] Definição e aprovação do Incremento 2.2: Persistência relacional com Spring Data JPA, entidades JPA, migrações Flyway e prevenção de concorrência com Testcontainers.
+- [ ] Definição e aprovação do Incremento 3.1: Integração Spring AI com OpenRouter e DTOs de Structured Output (`ScheduleCommand`, `IntentClassification`).
 
 ## Pending
 
-- [ ] Milestone 3: Integração Spring AI com OpenRouter e Structured Outputs.
+- [ ] Milestone 3: Nós do Grafo para IA (`identifyIntentNode` e `messageGeneratorNode`).
 - [ ] Milestone 4: Orquestração do DAG completo e Endpoint REST.
 
 ## Next Steps
 
-1. **Red:** Escrever testes de unidade para `AppointmentDomainService` (agendamento com sucesso, conflito de horário, cancelamento e médico inexistente).
-2. **Green:** Implementar entidades de domínio (`Doctor`, `TimeSlot`, `Appointment`), interfaces de repositório e `AppointmentDomainService`.
-3. **Refactor:** Revisar design defensivo do domínio e validar build com `./mvnw clean test` e ArchUnit.
+1. **Red:** Escrever teste de integração de persistência para os adaptadores JPA e validação de schema.
+2. **Green:** Criar script Flyway V1, entidades JPA, Spring Data Repositories e adaptadores de repositório.
+3. **Refactor:** Revisar mapeamentos, indexação e validar build com `./mvnw clean test` e ArchUnit.
 4. Atualizar documentação e diário de bordo.

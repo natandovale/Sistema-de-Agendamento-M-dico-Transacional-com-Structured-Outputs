@@ -3,7 +3,8 @@ package com.med.scheduler.graph.state;
 import java.util.Objects;
 
 /**
- * Estado imutável compartilhado entre todos os nós da máquina de estados (StateGraph).
+ * Estado imutável compartilhado entre todos os nós da máquina de estados
+ * (StateGraph).
  */
 public record ScheduleState(
         String conversationId,
@@ -14,8 +15,7 @@ public record ScheduleState(
         Object command,
         String actionResult,
         boolean actionSuccess,
-        String humanizedResponse
-) {
+        String humanizedResponse) {
 
     public ScheduleState {
         Objects.requireNonNull(conversationId, "conversationId cannot be null");
@@ -33,8 +33,7 @@ public record ScheduleState(
                 null,
                 null,
                 false,
-                null
-        );
+                null);
     }
 
     public ScheduleState withDetectedLanguage(String detectedLanguage) {
@@ -47,8 +46,7 @@ public record ScheduleState(
                 this.command,
                 this.actionResult,
                 this.actionSuccess,
-                this.humanizedResponse
-        );
+                this.humanizedResponse);
     }
 
     public ScheduleState withIntent(IntentType intent) {
@@ -61,8 +59,7 @@ public record ScheduleState(
                 this.command,
                 this.actionResult,
                 this.actionSuccess,
-                this.humanizedResponse
-        );
+                this.humanizedResponse);
     }
 
     public ScheduleState withCommand(Object command) {
@@ -75,8 +72,7 @@ public record ScheduleState(
                 command,
                 this.actionResult,
                 this.actionSuccess,
-                this.humanizedResponse
-        );
+                this.humanizedResponse);
     }
 
     public ScheduleState withActionResult(String actionResult, boolean actionSuccess) {
@@ -89,8 +85,7 @@ public record ScheduleState(
                 this.command,
                 actionResult,
                 actionSuccess,
-                this.humanizedResponse
-        );
+                this.humanizedResponse);
     }
 
     public ScheduleState withHumanizedResponse(String humanizedResponse) {
@@ -103,7 +98,6 @@ public record ScheduleState(
                 this.command,
                 this.actionResult,
                 this.actionSuccess,
-                humanizedResponse
-        );
+                humanizedResponse);
     }
 }

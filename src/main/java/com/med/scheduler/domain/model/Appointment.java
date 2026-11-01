@@ -11,8 +11,8 @@ public record Appointment(
         Doctor doctor,
         String patientId,
         LocalDateTime dateTime,
-        AppointmentStatus status
-) {
+        AppointmentStatus status) {
+
     public Appointment {
         Objects.requireNonNull(id, "id cannot be null");
         Objects.requireNonNull(doctor, "doctor cannot be null");
@@ -25,12 +25,12 @@ public record Appointment(
         if (this.status == AppointmentStatus.CANCELLED) {
             throw new IllegalStateException("Consulta já se encontra cancelada.");
         }
+
         return new Appointment(
                 this.id,
                 this.doctor,
                 this.patientId,
                 this.dateTime,
-                AppointmentStatus.CANCELLED
-        );
+                AppointmentStatus.CANCELLED);
     }
 }
