@@ -63,3 +63,24 @@ Foram gerados:
 
 **Módulos afetados:**
 - Raiz do projeto, `src/main/`, `src/test/`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 1.1: Engine do StateGraph e Governança com ArchUnit
+
+**Categoria:** Feature / Core
+**Importância:** Média
+**Horário:** 00:30
+
+**Descrição:**
+Implementado o primeiro incremento funcional sob metodologia TDD (Red-Green-Refactor):
+- Criação dos testes `StateGraphTest` com 4 cenários (execução linear, bifurcação condicional para agendamento, cancelamento e tratamento de nós inexistentes).
+- Criação das regras de arquitetura com `ArchitectureGovernanceTest` (ArchUnit).
+- Implementação de `ScheduleState` como `record` imutável em Java 21 com derivação funcional de estado.
+- Implementação de `Node<T>`, `EdgeCondition<T>` e `StateGraph<T>`.
+- Todos os 7 testes foram executados e passaram com 100% de sucesso em 8.9s.
+
+**Módulos afetados:**
+- `com.med.scheduler.graph.core`
+- `com.med.scheduler.graph.state`
+- `com.med.scheduler.architecture`

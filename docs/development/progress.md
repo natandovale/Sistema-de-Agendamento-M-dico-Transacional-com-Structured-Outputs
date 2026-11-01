@@ -14,21 +14,21 @@
 - [x] Elaboração do documento de requisitos e plano de desenvolvimento.
 - [x] Inclusão de `docker-compose.yml` para provisionamento do PostgreSQL local.
 - [x] **Bootstrap concluído:** Setup de `pom.xml`, Maven Wrapper, perfis `application.yml` / `application-test.yml`, estrutura base e compilação/teste validado com sucesso.
+- [x] **Incremento 1.1 (Primeiro Incremento):** Engine de Grafo de Estados (`ScheduleState`, `Node<T>`, `EdgeCondition<T>`, `StateGraph<T>`) implementada com TDD estrito e governança via ArchUnit (100% dos testes verdes).
 
 ## In Progress
 
-- [ ] Definição e aprovação do Primeiro Incremento (Incremento 1.1: Engine de Grafo de Estados com TDD).
+- [ ] Definição e aprovação do Incremento 2.1: Modelagem do Domínio Transacional (`Doctor`, `TimeSlot`, `Appointment`) com TDD.
 
 ## Pending
 
-- [ ] Milestone 1: Regras e testes de arquitetura com ArchUnit.
-- [ ] Milestone 1: Engine de Grafo de Estados (`ScheduleState`, `Node<T>`, `Edge<T>`, `StateGraphEngine`).
-- [ ] Milestone 2: Domínio Transacional de Agendamentos.
+- [ ] Milestone 2: Domínio Transacional de Agendamentos (`AppointmentDomainService`, repositórios e anti-double booking).
 - [ ] Milestone 3: Integração Spring AI com OpenRouter e Structured Outputs.
 - [ ] Milestone 4: Orquestração do DAG completo e Endpoint REST.
 
 ## Next Steps
 
-1. Obter aprovação do desenvolvedor para a documentação gerada.
-2. Executar o **Bootstrap** (Etapa 5): criar o `pom.xml`, estrutura de pastas padrão e classe principal Spring Boot sem regras de negócio ainda.
-3. Alinhar a proposta do **Primeiro Incremento Funcional** (Etapa 6).
+1. **Red:** Escrever testes de unidade para `StateGraph` e testes de arquitetura com `ArchUnit`.
+2. **Green:** Implementar `ScheduleState`, `Node<T>`, `EdgeCondition<T>` e `StateGraph<T>`.
+3. **Refactor:** Revisar design, garantir imutabilidade estrita e validar build com `./mvnw clean test`.
+4. Atualizar documentação e diário de bordo.
