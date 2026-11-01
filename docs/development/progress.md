@@ -18,18 +18,19 @@
 - [x] **Incremento 2.1 (Domínio Puro):** `Doctor`, `Appointment`, `AppointmentStatus`, portas de repositório e `AppointmentDomainService` (regras determinísticas de disponibilidade, conflito e cancelamento 100% testadas com TDD).
 - [x] **Incremento 2.2 (Persistência Relacional):** `DoctorEntity`, `AppointmentEntity`, Spring Data Repositories, adaptadores de persistência, Flyway migration V1 e testes de integração de persistência (100% testados).
 - [x] **Incremento 3.1 (Spring AI & Structured Outputs):** `ScheduleDetails`, `CancelDetails`, `IntentExtractionResult`, `LlmExtractionPort` e `OpenRouterStructuredExtractionService` com extração tipada (100% testados).
+- [x] **Incremento 3.2 (Nós do Grafo):** `IdentifyIntentNode`, `SchedulerNode`, `CancelNode`, `FallbackNode` e `MessageGeneratorNode` integrados aos serviços e validados via ArchUnit (100% testados).
 
 ## In Progress
 
-- [ ] Definição e aprovação do Incremento 3.2: Implementação dos nós do Grafo com IA e Domínio (`IdentifyIntentNode`, `SchedulerNode`, `CancelNode`, `FallbackNode`, `MessageGeneratorNode`).
+- [ ] Definição e aprovação do Incremento 4.1 (Milestone 4): Montagem do Grafo Completo (`ScheduleGraphOrchestrator`), Endpoint REST (`ChatScheduleController`) e testes E2E.
 
 ## Pending
 
-- [ ] Milestone 4: Orquestração do DAG completo e Endpoint REST.
+- [ ] Finalização do projeto e documentação final de encerramento.
 
 ## Next Steps
 
-1. **Red:** Escrever testes de unidade para `OpenRouterStructuredExtractionService` com mocks de `ChatClient`.
-2. **Green:** Criar os records de Structured Output, porta `LlmExtractionPort` e serviço `OpenRouterStructuredExtractionService`.
-3. **Refactor:** Revisar prompts, validações de schema e validar build com `./mvnw clean test` e ArchUnit.
+1. **Red:** Escrever testes de unidade para cada um dos 5 nós do Grafo com mocks de IA e Domínio.
+2. **Green:** Implementar as classes de nós em `com.med.scheduler.graph.nodes` implementando `Node<ScheduleState>`.
+3. **Refactor:** Revisar tratamento de erros defensivo e validar build com `./mvnw clean test` e regras do ArchUnit.
 4. Atualizar documentação e diário de bordo.

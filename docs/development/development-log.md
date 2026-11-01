@@ -150,3 +150,25 @@ Implementada a integração de IA com contratos rígidos de Structured Outputs v
 - `com.med.scheduler.infrastructure.ai`
 - `com.med.scheduler.infrastructure.ai.dto`
 - `com.med.scheduler.infrastructure.ai.port`
+
+---
+
+### [MEDIUM] [FEATURE] Incremento 3.2: Implementação dos Nós Explícitos do Grafo (DAG)
+
+**Categoria:** Feature / Grafo de Estados
+**Importância:** Média
+**Horário:** 11:03
+
+**Descrição:**
+Implementados os 5 nós operacionais do DAG conforme a especificação arquitetural sob governança do ArchUnit:
+- `IdentifyIntentNode`: aciona a porta de IA e atualiza o estado com linguagem, intenção e payload estruturado.
+- `SchedulerNode`: invoca o serviço de domínio determinístico para validação e persistência do agendamento, capturando exceções e registrando o resultado de negócio sem quebrar o grafo.
+- `CancelNode`: executa o cancelamento determinístico de consultas.
+- `FallbackNode`: orienta o paciente com instruções claras caso a intenção não seja identificada.
+- `MessageGeneratorNode`: sintetiza a resposta humanizada adaptando o tom e o idioma identificado (pt-BR, en-US, es-ES).
+- Criação dos testes unitários em `GraphNodesTest` cobrindo os 6 cenários dos nós.
+- Validação pelo ArchUnit de que todas as 5 classes implementam `Node<ScheduleState>`.
+- 100% de sucesso nos 23 testes do projeto em 12.4s.
+
+**Módulos afetados:**
+- `com.med.scheduler.graph.nodes`
